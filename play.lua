@@ -2,7 +2,7 @@ local dfpwm = require("cc.audio.dfpwm")
 local speakers = { peripheral.find("speaker") }
 local decoder = dfpwm.make_decoder()
 
-local url = "https://raw.githubusercontent.com/VEXGOS/1/main/titanomachia_ii.dfpwm"
+local url = "https://raw.githubusercontent.com/VEXGOS/1/main/Erika.dfpwm"
 local response, err = http.get(url)
 if not response then error("HTTP error: " .. tostring(err)) end
 
