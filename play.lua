@@ -2,7 +2,7 @@ local dfpwm = require("cc.audio.dfpwm")
 local speakers = { peripheral.find("speaker") }
 local decoder = dfpwm.make_decoder()
 
-local url = "https://raw.githubusercontent.com/VEXGOS/1/main/htxm.dfpwm"
+local url = "https://raw.githubusercontent.com/VEXGOS/1/main/Еріка Колесніченко - НЕ колискова.dfpwm"
 local response = http.get(url)
 if not response then error("Не вдалося завантажити трек") end
 
