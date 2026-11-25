@@ -2,9 +2,9 @@ local dfpwm = require("cc.audio.dfpwm")
 local speakers = { peripheral.find("speaker") }
 local decoder = dfpwm.make_decoder()
 
-local url = "https://raw.githubusercontent.com/VEXGOS/1/main/Erika.dfpwm"
-local response = http.get(url)
-if not response then error("Не вдалося завантажити трек") end
+local url = "https://raw.githubusercontent.com/VEXGOS/1/main/titanomachia_ii.dfpwm"
+local response, err = http.get(url)
+if not response then error("HTTP error: " .. tostring(err)) end
 
 while true do
     local chunk = response.read(16 * 1024)
