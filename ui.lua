@@ -1,41 +1,42 @@
 local ui = {}
 
+-- Індекси 16 кольорів палітри для CC: Graphics Mode 1 (1..16)
 ui.C = {
-    WHITE = 1,          -- 2^0
-    BEIGE = 2,          -- 2^1
-    GRAY = 4,           -- 2^2
-    LUNA_BLUE = 8,      -- 2^3
-    LUNA_LIGHT = 16,    -- 2^4
-    NAVY = 32,          -- 2^5
-    START_GREEN = 64,   -- 2^6
-    START_LIGHT = 128,  -- 2^7
-    SKY = 256,          -- 2^8
-    CLOUD = 512,        -- 2^9
-    HILL_LIGHT = 1024,  -- 2^10
-    HILL_DARK = 2048,   -- 2^11
-    RED = 4096,         -- 2^12
-    GOLD = 8192,        -- 2^13
-    DARK = 16384,       -- 2^14
-    BLACK = 32768       -- 2^15
+    WHITE = 1,
+    BEIGE = 2,
+    GRAY = 3,
+    LUNA_BLUE = 4,
+    LUNA_LIGHT = 5,
+    NAVY = 6,
+    START_GREEN = 7,
+    START_LIGHT = 8,
+    SKY = 9,
+    CLOUD = 10,
+    HILL_LIGHT = 11,
+    HILL_DARK = 12,
+    RED = 13,
+    GOLD = 14,
+    DARK = 15,
+    BLACK = 16
 }
 
 local paletteHex = {
-    [ui.C.WHITE]       = 0xFFFFFF,
-    [ui.C.BEIGE]       = 0xECE9D8,
-    [ui.C.GRAY]        = 0xACA899,
-    [ui.C.LUNA_BLUE]   = 0x245EDC,
-    [ui.C.LUNA_LIGHT]  = 0x4B8BF5,
-    [ui.C.NAVY]        = 0x003399,
-    [ui.C.START_GREEN] = 0x3C9A3C,
-    [ui.C.START_LIGHT] = 0x62B862,
-    [ui.C.SKY]         = 0x5C9DED,
-    [ui.C.CLOUD]       = 0xD6E8FC,
-    [ui.C.HILL_LIGHT]  = 0x68B028,
-    [ui.C.HILL_DARK]   = 0x468218,
-    [ui.C.RED]         = 0xE0433E,
-    [ui.C.GOLD]        = 0xF39C12,
-    [ui.C.DARK]        = 0x1A1D24,
-    [ui.C.BLACK]       = 0x000000
+    [1]  = 0xFFFFFF, -- White
+    [2]  = 0xECE9D8, -- XP Window Beige
+    [3]  = 0xACA899, -- XP Border Gray
+    [4]  = 0x245EDC, -- XP Luna Blue
+    [5]  = 0x4B8BF5, -- XP Luna Highlight
+    [6]  = 0x003399, -- XP Dark Blue
+    [7]  = 0x3C9A3C, -- XP Start Green
+    [8]  = 0x62B862, -- XP Start Highlight
+    [9]  = 0x5C9DED, -- Bliss Sky
+    [10] = 0xD6E8FC, -- Bliss Cloud
+    [11] = 0x68B028, -- Bliss Hill Light
+    [12] = 0x468218, -- Bliss Hill Dark
+    [13] = 0xE0433E, -- XP Close Red
+    [14] = 0xF39C12, -- XP Gold
+    [15] = 0x1A1D24, -- WMP Dark Screen
+    [16] = 0x000000  -- Black
 }
 
 local font3x5 = {
@@ -66,7 +67,7 @@ function ui.init()
     ui.mon = mon
 
     mon.setGraphicsMode(0)
-    mon.setTextScale(1)
+    mon.setTextScale(0.5)
     local cw, ch = mon.getSize()
 
     mon.setGraphicsMode(1)
@@ -74,8 +75,8 @@ function ui.init()
     ui.cellW = ui.w / cw
     ui.cellH = ui.h / ch
 
-    for colorMask, hex in pairs(paletteHex) do
-        mon.setPaletteColor(colorMask, hex)
+    for idx, hex in pairs(paletteHex) do
+        mon.setPaletteColor(2 ^ (idx - 1), hex)
     end
 end
 
@@ -100,7 +101,12 @@ function ui.fillRect(x, y, w, h, color)
     h = math.min(ui.h - y, math.floor(h))
     if w <= 0 or h <= 0 then return end
 
-    ui.mon.drawPixels(x, y, color, w, h)
+    local row = {}
+    for i = 1, w do row[i] = color end
+    local grid = {}
+    for j = 1, h do grid[j] = row end
+
+    ui.mon.drawPixels(x, y, grid, w, h)
 end
 
 function ui.drawText(x, y, text, color, scale)
@@ -176,13 +182,13 @@ function ui.drawTaskbar(buttons, onStartClick, onUpdateClick)
     ui.drawButton(buttons, 0, y, 34, taskH, ui.C.START_GREEN, ui.C.START_LIGHT, "START", ui.C.WHITE, onStartClick)
 
     local timeStr = textutils.formatTime(os.time(), true)
-    local trayW = 54
+    local trayW = 36
     local trayX = ui.w - trayW
     ui.fillRect(trayX, y + 1, trayW, taskH - 1, ui.C.LUNA_LIGHT)
     ui.drawText(trayX + 4, y + 5, timeStr, ui.C.WHITE, 1)
 
     if onUpdateClick then
-        ui.drawButton(buttons, trayX - 30, y + 2, 28, taskH - 4, ui.C.GOLD, ui.C.WHITE, "UPD", ui.C.BLACK, onUpdateClick)
+        ui.drawButton(buttons, trayX - 22, y + 2, 20, taskH - 4, ui.C.GOLD, ui.C.WHITE, "UPD", ui.C.BLACK, onUpdateClick)
     end
 end
 
