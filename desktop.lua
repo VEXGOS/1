@@ -17,12 +17,26 @@ local apps = {
                 ui.fillRect(cx + i, cy + i, 2, ph - i * 2, ui.C.BLACK)
             end
         end
+    },
+    {
+        name = "SNAKE",
+        file = "/snake.lua",
+        url = REPO_RAW .. "snake.lua",
+        drawIcon = function(x, y, size)
+            local p = math.max(2, math.floor(size / 10))
+            ui.fillRect(x + p, y + p, size - p * 2, size - p * 2, ui.C.DARK)
+            -- Тіло змійки
+            ui.fillRect(x + p * 2, y + p * 3, math.floor(size * 0.5), p * 2, ui.C.START_GREEN)
+            ui.fillRect(x + p * 2, y + p * 3, p * 2, math.floor(size * 0.45), ui.C.START_GREEN)
+            ui.fillRect(x + p * 2, y + math.floor(size * 0.65), math.floor(size * 0.45), p * 2, ui.C.GOLD)
+            -- Яблуко
+            ui.fillRect(x + math.floor(size * 0.68), y + math.floor(size * 0.45), p * 2, p * 2, ui.C.RED)
+        end
     }
 }
 
 local buttons = {}
 local startMenuOpen = false
-local lastClick = nil
 
 local function downloadFile(url, path)
     local res = http.get(url .. "?t=" .. tostring(os.epoch("utc")))
@@ -110,13 +124,6 @@ local function renderDesktop()
         function() updateAll() end
     )
 
-    -- Відображення координат останнього кліку на панелі задач
-    if lastClick then
-        local info = lastClick.x .. "," .. lastClick.y
-        local startW = ui.textWidth("START", s) + 12 * s
-        ui.drawText(startW + 4 * s, ui.h - ui.taskH + math.floor((ui.taskH - 5 * s) / 2), info, ui.C.GOLD, s)
-    end
-
     if startMenuOpen then
         local mw = math.max(84 * s, ui.pctX(0.32))
         local headerH = 10 * s + 4
@@ -144,11 +151,6 @@ local function renderDesktop()
         ui.drawButton(buttons, mx + 5 + halfW, my + mh - footerH + 2, mw - halfW - 8, footerH - 4, ui.C.RED, ui.C.RED, "REBOOT", ui.C.WHITE, os.reboot, s)
     end
 
-    -- Червона точка у місці кліку для візуального підтвердження
-    if lastClick then
-        ui.fillRect(lastClick.x - 2, lastClick.y - 2, 4, 4, ui.C.RED)
-    end
-
     ui.mon.setFrozen(false)
 end
 
@@ -164,7 +166,6 @@ local ok, err = pcall(function()
             clockTimer = os.startTimer(5)
         elseif ev == "monitor_touch" then
             local px, py = ui.touchToPixel(p2, p3)
-            lastClick = { x = px, y = py }
             local hit = false
             for _, btn in ipairs(buttons) do
                 if px >= btn.x1 and px <= btn.x2 and py >= btn.y1 and py <= btn.y2 then
