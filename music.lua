@@ -49,13 +49,11 @@ local function renderPlayer(onSelect, onSync, onStop)
         exitApp = true
     end)
 
-    -- Темний екран візуалізатора зверху (як у WMP)
     local vizH = 26
     ui.fillRect(cx + 2, cy + 1, cw - 4, vizH, ui.C.DARK)
 
     if currentTrack then
         ui.drawText(cx + 6, cy + 4, currentTrack.name:sub(1, 28), ui.C.HILL_LIGHT, 1)
-        -- Анімовані стовпчики еквалайзера
         for i = 0, 14 do
             local barH = math.random(3, 12)
             ui.fillRect(cx + 6 + i * 5, cy + vizH - barH - 1, 3, barH, ui.C.LUNA_LIGHT)
@@ -65,7 +63,6 @@ local function renderPlayer(onSelect, onSync, onStop)
         ui.drawText(cx + 6, cy + 15, statusMsg, ui.C.GRAY, 1)
     end
 
-    -- Панель керування: повзунок гучності + кнопки SYNC / STOP
     local ctrlY = cy + vizH + 4
     ui.drawText(cx + 2, ctrlY + 3, "VOL", ui.C.BLACK, 1)
 
@@ -74,7 +71,6 @@ local function renderPlayer(onSelect, onSync, onStop)
     local fillW = math.floor((volume / 3.0) * barW)
     ui.fillRect(barX, ctrlY + 2, fillW, 6, ui.C.START_GREEN)
 
-    -- Клік по самій шкалі змінює гучність
     table.insert(buttons, {
         x1 = barX, y1 = ctrlY, x2 = barX + barW, y2 = ctrlY + 10,
         onClick = function(px)
@@ -89,7 +85,6 @@ local function renderPlayer(onSelect, onSync, onStop)
         ui.drawButton(buttons, cx + cw - 28, ctrlY, 26, 10, ui.C.RED, ui.C.BLACK, "STOP", ui.C.WHITE, onStop)
     end
 
-    -- Список пісень
     local listY = ctrlY + 14
     ui.fillRect(cx + 2, listY, cw - 4, ch - (listY - cy) - 2, ui.C.WHITE)
 
