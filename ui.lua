@@ -59,6 +59,8 @@ ui.w = 0
 ui.h = 0
 ui.cellW = 6
 ui.cellH = 9
+ui.scale = 1
+ui.taskH = 14
 
 function ui.init()
     local mon = peripheral.find("monitor")
@@ -66,7 +68,7 @@ function ui.init()
     ui.mon = mon
 
     mon.setGraphicsMode(0)
-    mon.setTextScale(1)
+    mon.setTextScale(0.5)
     local cw, ch = mon.getSize()
 
     mon.setGraphicsMode(1)
@@ -75,8 +77,13 @@ function ui.init()
     ui.w = cw * ui.cellW
     ui.h = ch * ui.cellH
 
+    -- Адаптивний коефіцієнт масштабу (для 2x2 -> 1, для 3x3 -> 2, для 4x4+ -> 3)
+    local minSide = math.min(ui.w, ui.h)
+    ui.scale = math.max(1, math.min(3, math.floor(minSide / 150)))
+    ui.taskH = 12 * ui.scale + 4
+
     for idx, hex in pairs(paletteHex) do
-        mon.setPaletteColor(idx - 1, hex)
+        mon.setPaletteColor(2 ^ (idx - 1), hex)
     end
 end
 
@@ -85,6 +92,24 @@ function ui.shutdown()
         ui.mon.setFrozen(false)
         ui.mon.setGraphicsMode(0)
     end
+end
+
+-- Відносні координати у відсотках від розміру екрана (0.0 .. 1.0)
+function ui.pctX(p)
+    return math.floor(ui.w * p)
+end
+
+function ui.pctY(p)
+    return math.floor(ui.h * p)
+end
+
+-- 12-колонкова адаптивна сітка всередині будь-якої області
+function ui.gridCol(areaX, areaW, colStart, colSpan, gap)
+    gap = gap or 2
+    local colW = (areaW - gap * 11) / 12
+    local x = math.floor(areaX + (colStart - 1) * (colW + gap))
+    local w = math.floor(colSpan * colW + (colSpan - 1) * gap)
+    return x, w
 end
 
 function ui.touchToPixel(tx, ty)
@@ -110,7 +135,7 @@ function ui.fillRect(x, y, w, h, color)
 end
 
 function ui.drawText(x, y, text, color, scale)
-    scale = scale or 1
+    scale = scale or ui.scale
     text = tostring(text):upper()
     local cx = math.floor(x)
     local cy = math.floor(y)
@@ -137,75 +162,90 @@ function ui.drawText(x, y, text, color, scale)
 end
 
 function ui.textWidth(text, scale)
-    scale = scale or 1
+    scale = scale or ui.scale
     return #tostring(text) * 4 * scale - scale
 end
 
-function ui.drawButton(buttons, x, y, w, h, bg, border, label, txtColor, onClick)
+function ui.drawButton(buttons, x, y, w, h, bg, border, label, txtColor, onClick, textScale)
+    textScale = textScale or ui.scale
     ui.fillRect(x, y, w, h, border or bg)
     ui.fillRect(x + 1, y + 1, w - 2, h - 2, bg)
     if label and #label > 0 then
-        local tw = ui.textWidth(label, 1)
+        local tw = ui.textWidth(label, textScale)
         local tx = x + math.max(2, math.floor((w - tw) / 2))
-        local ty = y + math.floor((h - 5) / 2)
-        ui.drawText(tx, ty, label, txtColor or ui.C.WHITE, 1)
+        local ty = y + math.floor((h - 5 * textScale) / 2)
+        ui.drawText(tx, ty, label, txtColor or ui.C.WHITE, textScale)
     end
     if onClick then
         table.insert(buttons, { x1 = x, y1 = y, x2 = x + w - 1, y2 = y + h - 1, onClick = onClick })
     end
 end
 
+-- Адаптивні шпалери Windows XP (Bliss)
 function ui.drawBlissWallpaper()
-    local taskH = 12
-    local deskH = ui.h - taskH
+    local deskH = ui.h - ui.taskH
     ui.fillRect(0, 0, ui.w, deskH, ui.C.SKY)
 
-    ui.fillRect(58, 12, 26, 6, ui.C.CLOUD)
-    ui.fillRect(62, 9, 16, 10, ui.C.CLOUD)
+    -- Адаптивна хмаринка
+    local cloudX = ui.pctX(0.55)
+    local cloudY = ui.pctY(0.12)
+    local cloudW = math.max(24, ui.pctX(0.22))
+    local cloudH = math.max(8, ui.pctY(0.06))
+    ui.fillRect(cloudX, cloudY + math.floor(cloudH * 0.3), cloudW, math.floor(cloudH * 0.7), ui.C.CLOUD)
+    ui.fillRect(cloudX + math.floor(cloudW * 0.18), cloudY, math.floor(cloudW * 0.6), cloudH, ui.C.CLOUD)
 
+    -- Адаптивний зелений пагорб
+    local waveAmp = math.max(8, ui.pctY(0.08))
+    local waveFreq = (math.pi * 1.4) / math.max(1, ui.w)
     for x = 0, ui.w - 1 do
-        local hillTop = math.floor(deskH * 0.60 + math.sin(x * 0.045) * 8)
+        local hillTop = math.floor(deskH * 0.60 + math.sin(x * waveFreq) * waveAmp)
         if hillTop < deskH then
-            ui.fillRect(x, hillTop, 1, 2, ui.C.HILL_LIGHT)
-            ui.fillRect(x, hillTop + 2, 1, deskH - hillTop - 2, ui.C.HILL_DARK)
+            ui.fillRect(x, hillTop, 1, 2 * ui.scale, ui.C.HILL_LIGHT)
+            ui.fillRect(x, hillTop + 2 * ui.scale, 1, deskH - hillTop - 2 * ui.scale, ui.C.HILL_DARK)
         end
     end
 end
 
+-- Адаптивна панель задач Windows XP
 function ui.drawTaskbar(buttons, onStartClick, onUpdateClick)
-    local taskH = 12
-    local y = ui.h - taskH
+    local y = ui.h - ui.taskH
+    local s = ui.scale
 
     ui.fillRect(0, y, ui.w, 1, ui.C.LUNA_LIGHT)
-    ui.fillRect(0, y + 1, ui.w, taskH - 1, ui.C.LUNA_BLUE)
+    ui.fillRect(0, y + 1, ui.w, ui.taskH - 1, ui.C.LUNA_BLUE)
 
-    ui.drawButton(buttons, 0, y, 28, taskH, ui.C.START_GREEN, ui.C.START_LIGHT, "START", ui.C.WHITE, onStartClick)
+    local startW = ui.textWidth("START", s) + 12 * s
+    ui.drawButton(buttons, 0, y, startW, ui.taskH, ui.C.START_GREEN, ui.C.START_LIGHT, "START", ui.C.WHITE, onStartClick, s)
 
     local timeStr = textutils.formatTime(os.time(), true)
-    local trayW = 32
+    local trayW = ui.textWidth(timeStr, s) + 10 * s
     local trayX = ui.w - trayW
-    ui.fillRect(trayX, y + 1, trayW, taskH - 1, ui.C.LUNA_LIGHT)
-    ui.drawText(trayX + 3, y + 4, timeStr, ui.C.WHITE, 1)
+    ui.fillRect(trayX, y + 1, trayW, ui.taskH - 1, ui.C.LUNA_LIGHT)
+    ui.drawText(trayX + 5 * s, y + math.floor((ui.taskH - 5 * s) / 2), timeStr, ui.C.WHITE, s)
 
     if onUpdateClick then
-        ui.drawButton(buttons, trayX - 20, y + 2, 18, taskH - 4, ui.C.GOLD, ui.C.WHITE, "UPD", ui.C.BLACK, onUpdateClick)
+        local updW = ui.textWidth("UPD", s) + 8 * s
+        ui.drawButton(buttons, trayX - updW - 2 * s, y + 2, updW, ui.taskH - 4, ui.C.GOLD, ui.C.WHITE, "UPD", ui.C.BLACK, onUpdateClick, s)
     end
 end
 
+-- Адаптивне вікно Windows XP
 function ui.drawWindow(buttons, title, onClose)
-    local taskH = 12
-    local winH = ui.h - taskH
-    local titleH = 11
+    local s = ui.scale
+    local winH = ui.h - ui.taskH
+    local titleH = 9 * s + 4
+    local border = math.max(2, s)
 
     ui.fillRect(0, 0, ui.w, winH, ui.C.LUNA_BLUE)
-    ui.fillRect(2, titleH, ui.w - 4, winH - titleH - 2, ui.C.BEIGE)
+    ui.fillRect(border, titleH, ui.w - border * 2, winH - titleH - border, ui.C.BEIGE)
 
-    ui.fillRect(2, 1, ui.w - 4, 1, ui.C.LUNA_LIGHT)
-    ui.drawText(5, 3, title, ui.C.WHITE, 1)
+    ui.fillRect(border, 1, ui.w - border * 2, 1, ui.C.LUNA_LIGHT)
+    ui.drawText(border + 4 * s, math.floor((titleH - 5 * s) / 2) + 1, title, ui.C.WHITE, s)
 
-    ui.drawButton(buttons, ui.w - 11, 2, 9, 8, ui.C.RED, ui.C.WHITE, "X", ui.C.WHITE, onClose)
+    local closeSize = titleH - 3
+    ui.drawButton(buttons, ui.w - closeSize - border, 2, closeSize, closeSize, ui.C.RED, ui.C.WHITE, "X", ui.C.WHITE, onClose, s)
 
-    return 3, titleH + 2, ui.w - 6, winH - titleH - 4
+    return border + 2, titleH + 2, ui.w - (border + 2) * 2, winH - titleH - border - 4
 end
 
 return ui
