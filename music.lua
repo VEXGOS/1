@@ -43,63 +43,85 @@ end
 
 local function renderPlayer(onSelect, onSync, onStop)
     buttons = {}
+    local s = ui.scale
     ui.mon.setFrozen(true)
 
-    local cx, cy, cw, ch = ui.drawWindow(buttons, "MEDIA PLAYER", function()
+    local cx, cy, cw, ch = ui.drawWindow(buttons, "WINDOWS MEDIA PLAYER", function()
         exitApp = true
     end)
 
-    local vizH = 22
-    ui.fillRect(cx + 1, cy, cw - 2, vizH, ui.C.DARK)
+    -- Адаптивний візуалізатор (22% висоти вікна)
+    local vizH = math.max(20 * s, math.floor(ch * 0.24))
+    local vizX = cx + 2 * s
+    local vizW = cw - 4 * s
+    ui.fillRect(vizX, cy + s, vizW, vizH, ui.C.DARK)
 
+    local maxTitleChars = math.max(8, math.floor((vizW - 8 * s) / (4 * s)))
     if currentTrack then
-        ui.drawText(cx + 4, cy + 3, currentTrack.name:sub(1, 22), ui.C.HILL_LIGHT, 1)
-        for i = 0, 14 do
-            local barH = math.random(2, 10)
-            ui.fillRect(cx + 4 + i * 6, cy + vizH - barH - 1, 4, barH, ui.C.LUNA_LIGHT)
+        ui.drawText(vizX + 4 * s, cy + 3 * s, currentTrack.name:sub(1, maxTitleChars), ui.C.HILL_LIGHT, s)
+        local barW = 3 * s
+        local barGap = 2 * s
+        local bars = math.floor((vizW - 8 * s) / (barW + barGap))
+        local maxBarH = math.max(4, vizH - 11 * s)
+        for i = 0, bars - 1 do
+            local barH = math.random(2, maxBarH)
+            ui.fillRect(vizX + 4 * s + i * (barW + barGap), cy + s + vizH - barH - 2 * s, barW, barH, ui.C.LUNA_LIGHT)
         end
     else
-        ui.drawText(cx + 4, cy + 4, "VEXGOS PLAYER", ui.C.LUNA_LIGHT, 1)
-        ui.drawText(cx + 4, cy + 13, statusMsg, ui.C.GRAY, 1)
+        ui.drawText(vizX + 4 * s, cy + 4 * s, ("VEXGOS PLAYER"):sub(1, maxTitleChars), ui.C.LUNA_LIGHT, s)
+        ui.drawText(vizX + 4 * s, cy + 11 * s, statusMsg:sub(1, maxTitleChars), ui.C.GRAY, s)
     end
 
-    local ctrlY = cy + vizH + 2
-    ui.drawText(cx + 1, ctrlY + 2, "VOL", ui.C.BLACK, 1)
+    -- Адаптивна панель керування на 12-колонковій сітці
+    local ctrlY = cy + vizH + 3 * s
+    local ctrlH = 8 * s + 4
 
-    local barX, barW = cx + 15, 32
-    ui.fillRect(barX, ctrlY + 2, barW, 5, ui.C.GRAY)
+    local c1x, c1w = ui.gridCol(vizX, vizW, 1, 2, 2 * s)
+    ui.drawText(c1x, ctrlY + math.floor((ctrlH - 5 * s) / 2), "VOL", ui.C.BLACK, s)
+
+    local barX, barW = ui.gridCol(vizX, vizW, 3, 5, 2 * s)
+    local barH = math.max(4, 5 * s)
+    local barY = ctrlY + math.floor((ctrlH - barH) / 2)
+    ui.fillRect(barX, barY, barW, barH, ui.C.GRAY)
     local fillW = math.floor((volume / 3.0) * barW)
-    ui.fillRect(barX, ctrlY + 2, fillW, 5, ui.C.START_GREEN)
+    ui.fillRect(barX, barY, fillW, barH, ui.C.START_GREEN)
 
     table.insert(buttons, {
-        x1 = barX, y1 = ctrlY, x2 = barX + barW, y2 = ctrlY + 9,
+        x1 = barX, y1 = ctrlY, x2 = barX + barW, y2 = ctrlY + ctrlH,
         onClick = function(px)
             local ratio = math.max(0.15, math.min(1.0, (px - barX) / barW))
             volume = math.floor(ratio * 6 + 0.5) * 0.5
         end
     })
 
-    ui.drawButton(buttons, barX + barW + 3, ctrlY, 22, 9, ui.C.LUNA_BLUE, ui.C.NAVY, "SYNC", ui.C.WHITE, onSync)
+    local syncX, syncW = ui.gridCol(vizX, vizW, 8, 2, 2 * s)
+    ui.drawButton(buttons, syncX, ctrlY, syncW, ctrlH, ui.C.LUNA_BLUE, ui.C.NAVY, "SYNC", ui.C.WHITE, onSync, s)
 
     if currentTrack then
-        ui.drawButton(buttons, barX + barW + 27, ctrlY, 22, 9, ui.C.RED, ui.C.BLACK, "STOP", ui.C.WHITE, onStop)
+        local stopX, stopW = ui.gridCol(vizX, vizW, 10, 3, 2 * s)
+        ui.drawButton(buttons, stopX, ctrlY, stopW, ctrlH, ui.C.RED, ui.C.BLACK, "STOP", ui.C.WHITE, onStop, s)
     end
 
-    local listY = ctrlY + 11
-    ui.fillRect(cx + 1, listY, cw - 2, ch - (listY - cy) - 1, ui.C.WHITE)
+    -- Адаптивний список треків
+    local listY = ctrlY + ctrlH + 3 * s
+    local listH = ch - (listY - cy) - 2 * s
+    ui.fillRect(vizX, listY, vizW, listH, ui.C.WHITE)
 
-    local itemY = listY + 1
+    local itemY = listY + 2 * s
+    local itemH = 7 * s + 4
+    local maxChars = math.max(8, math.floor((vizW - 8 * s) / (4 * s)))
+
     for i, tr in ipairs(tracks) do
-        if itemY + 9 > cy + ch - 1 then break end
+        if itemY + itemH > listY + listH - s then break end
         local active = (currentTrack and currentTrack.name == tr.name)
         local bg = active and ui.C.LUNA_BLUE or ui.C.WHITE
         local fg = active and ui.C.WHITE or ui.C.BLACK
-        local label = (active and ">" or (i .. ".")) .. tr.name
+        local label = (active and "> " or (i .. ". ")) .. tr.name
 
-        ui.drawButton(buttons, cx + 2, itemY, cw - 4, 9, bg, bg, label:sub(1, 23), fg, function()
+        ui.drawButton(buttons, vizX + s, itemY, vizW - 2 * s, itemH, bg, bg, label:sub(1, maxChars), fg, function()
             onSelect(tr)
-        end)
-        itemY = itemY + 10
+        end, s)
+        itemY = itemY + itemH + s
     end
 
     ui.drawTaskbar(buttons, function() exitApp = true end, nil)
@@ -141,7 +163,9 @@ local function playTrack(track)
                 function() stopReq = true end
             )
             local ev, p1, p2, p3 = os.pullEvent()
-            if ev == "timer" and p1 == animTimer then
+            if ev == "monitor_resize" then
+                ui.init()
+            elseif ev == "timer" and p1 == animTimer then
                 animTimer = os.startTimer(0.25)
             elseif ev == "monitor_touch" then
                 local px, py = ui.touchToPixel(p2, p3)
@@ -175,7 +199,9 @@ while not exitApp do
     )
 
     local ev, p1, p2, p3 = os.pullEvent()
-    if ev == "timer" and p1 == syncTimer then
+    if ev == "monitor_resize" then
+        ui.init()
+    elseif ev == "timer" and p1 == syncTimer then
         fetchTracks()
         syncTimer = os.startTimer(REFRESH_INTERVAL)
     elseif ev == "monitor_touch" then
