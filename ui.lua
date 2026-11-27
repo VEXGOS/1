@@ -1,23 +1,41 @@
 local ui = {}
 
--- Стандартні індекси палітри CC: Tweaked (1..16) у стилі Windows XP
 ui.C = {
-    WHITE = 1,        -- Білий
-    BEIGE = 9,        -- Світло-сірий (вікна XP)
-    GRAY = 8,         -- Темно-сірий (рамки)
-    LUNA_BLUE = 12,   -- Синій (панель задач та шапка вікна)
-    LUNA_LIGHT = 10,  -- Блакитно-бірюзовий (трей годинника)
-    NAVY = 12,        -- Темно-синій
-    START_GREEN = 6,  -- Лаймовий (кнопка START)
-    START_LIGHT = 14, -- Зелений (рамка START)
-    SKY = 4,          -- Світло-блакитний (небо Bliss)
-    CLOUD = 1,        -- Білий (хмаринка)
-    HILL_LIGHT = 6,   -- Світло-зелений (верх пагорба)
-    HILL_DARK = 14,   -- Зелений (пагорб Bliss)
-    RED = 15,         -- Червоний (кнопка X / STOP)
-    GOLD = 5,         -- Жовтий (іконка плеєра / кнопка UPD)
-    DARK = 16,        -- Чорний (екран еквалайзера)
-    BLACK = 16        -- Чорний (текст і тіні)
+    WHITE = 1,
+    BEIGE = 2,
+    GRAY = 3,
+    LUNA_BLUE = 4,
+    LUNA_LIGHT = 5,
+    NAVY = 6,
+    START_GREEN = 7,
+    START_LIGHT = 8,
+    SKY = 9,
+    CLOUD = 10,
+    HILL_LIGHT = 11,
+    HILL_DARK = 12,
+    RED = 13,
+    GOLD = 14,
+    DARK = 15,
+    BLACK = 16
+}
+
+local paletteHex = {
+    [1]  = 0xFFFFFF, -- Білий
+    [2]  = 0xECE9D8, -- Бежевий (тіло вікон XP)
+    [3]  = 0xACA899, -- Сірий (рамки)
+    [4]  = 0x245EDC, -- Синій Luna (панель задач і шапка)
+    [5]  = 0x4B8BF5, -- Світло-синій (трей годинника)
+    [6]  = 0x003399, -- Темно-синій
+    [7]  = 0x3C9A3C, -- Зелений (кнопка START)
+    [8]  = 0x62B862, -- Світло-зелений (рамка START)
+    [9]  = 0x5C9DED, -- Небо Bliss
+    [10] = 0xD6E8FC, -- Хмаринка Bliss
+    [11] = 0x68B028, -- Світло-зелений пагорб
+    [12] = 0x468218, -- Темно-зелений пагорб
+    [13] = 0xE0433E, -- Червоний (кнопка X / STOP)
+    [14] = 0xF39C12, -- Золотий (іконка плеєра / UPD)
+    [15] = 0x1A1D24, -- Темний фон еквалайзера
+    [16] = 0x000000  -- Чорний
 }
 
 local font3x5 = {
@@ -62,6 +80,10 @@ function ui.init()
     local minSide = math.min(ui.w, ui.h)
     ui.scale = math.max(1, math.min(3, math.floor(minSide / 150)))
     ui.taskH = 12 * ui.scale + 4
+
+    for idx, hex in pairs(paletteHex) do
+        mon.setPaletteColor(idx - 1, hex)
+    end
 end
 
 function ui.shutdown()
@@ -87,11 +109,9 @@ function ui.gridCol(areaX, areaW, colStart, colSpan, gap)
     return x, w
 end
 
--- Переведення символьних координат monitor_touch у пікселі (6x9 на клітинку)
+-- У CC: Graphics подія monitor_touch вже передає піксельні координати
 function ui.touchToPixel(tx, ty)
-    local px = math.floor((tx - 0.5) * ui.cellW)
-    local py = math.floor((ty - 0.5) * ui.cellH)
-    return px, py
+    return math.floor(tx), math.floor(ty)
 end
 
 function ui.fillRect(x, y, w, h, color)
@@ -187,7 +207,7 @@ function ui.drawTaskbar(buttons, onStartClick, onUpdateClick)
     ui.fillRect(0, y + 1, ui.w, ui.taskH - 1, ui.C.LUNA_BLUE)
 
     local startW = ui.textWidth("START", s) + 12 * s
-    ui.drawButton(buttons, 0, y, startW, ui.taskH, ui.C.START_GREEN, ui.C.START_LIGHT, "START", ui.C.BLACK, onStartClick, s)
+    ui.drawButton(buttons, 0, y, startW, ui.taskH, ui.C.START_GREEN, ui.C.START_LIGHT, "START", ui.C.WHITE, onStartClick, s)
 
     local timeStr = textutils.formatTime(os.time(), true)
     local trayW = ui.textWidth(timeStr, s) + 10 * s
