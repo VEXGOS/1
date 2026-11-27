@@ -1,14 +1,12 @@
 local ui = dofile("/ui.lua")
 local REPO_RAW = "https://raw.githubusercontent.com/VEXGOS/1/main/"
 
--- Список додатків на робочому столі (сюди додаємо нові програми)
 local apps = {
     {
         name = "MEDIA",
         file = "/music.lua",
         url = REPO_RAW .. "music.lua",
         drawIcon = function(x, y)
-            -- Іконка Windows Media Player
             ui.fillRect(x + 2, y + 2, 16, 16, ui.C.LUNA_BLUE)
             ui.fillRect(x + 4, y + 4, 12, 12, ui.C.GOLD)
             ui.fillRect(x + 8, y + 7, 2, 6, ui.C.WHITE)
@@ -20,7 +18,6 @@ local apps = {
 
 local buttons = {}
 local startMenuOpen = false
-local statusBanner = nil
 
 local function downloadFile(url, path)
     local res = http.get(url .. "?t=" .. tostring(os.epoch("utc")))
@@ -34,10 +31,9 @@ local function downloadFile(url, path)
 end
 
 local function updateAll()
-    statusBanner = "UPDATING SYSTEM..."
     ui.mon.setFrozen(true)
     ui.fillRect(20, 40, ui.w - 40, 20, ui.C.NAVY)
-    ui.drawText(26, 48, statusBanner, ui.C.WHITE, 1)
+    ui.drawText(26, 48, "UPDATING SYSTEM...", ui.C.WHITE, 1)
     ui.mon.setFrozen(false)
 
     downloadFile(REPO_RAW .. "ui.lua", "/ui.lua")
@@ -67,7 +63,6 @@ local function renderDesktop()
 
     ui.drawBlissWallpaper()
 
-    -- Іконки на робочому столі
     local ix, iy = 10, 10
     for _, app in ipairs(apps) do
         app.drawIcon(ix, iy)
@@ -88,14 +83,12 @@ local function renderDesktop()
         end
     end
 
-    -- Панель задач
     ui.drawTaskbar(
         buttons,
         function() startMenuOpen = not startMenuOpen end,
         function() updateAll() end
     )
 
-    -- Спливаюче меню Start (як у Windows XP)
     if startMenuOpen then
         local mw, mh = 86, 68
         local mx, my = 0, ui.h - 14 - mh
@@ -113,7 +106,6 @@ local function renderDesktop()
             itemY = itemY + 13
         end
 
-        -- Нижня смуга Start із кнопками Update та Reboot
         ui.drawButton(buttons, mx + 3, my + mh - 11, 38, 9, ui.C.GOLD, ui.C.GOLD, "UPDATE", ui.C.BLACK, updateAll)
         ui.drawButton(buttons, mx + 44, my + mh - 11, 39, 9, ui.C.RED, ui.C.RED, "REBOOT", ui.C.WHITE, os.reboot)
     end
