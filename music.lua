@@ -45,61 +45,61 @@ local function renderPlayer(onSelect, onSync, onStop)
     buttons = {}
     ui.mon.setFrozen(true)
 
-    local cx, cy, cw, ch = ui.drawWindow(buttons, "WINDOWS MEDIA PLAYER", function()
+    local cx, cy, cw, ch = ui.drawWindow(buttons, "MEDIA PLAYER", function()
         exitApp = true
     end)
 
-    local vizH = 26
-    ui.fillRect(cx + 2, cy + 1, cw - 4, vizH, ui.C.DARK)
+    local vizH = 22
+    ui.fillRect(cx + 1, cy, cw - 2, vizH, ui.C.DARK)
 
     if currentTrack then
-        ui.drawText(cx + 6, cy + 4, currentTrack.name:sub(1, 28), ui.C.HILL_LIGHT, 1)
+        ui.drawText(cx + 4, cy + 3, currentTrack.name:sub(1, 22), ui.C.HILL_LIGHT, 1)
         for i = 0, 14 do
-            local barH = math.random(3, 12)
-            ui.fillRect(cx + 6 + i * 5, cy + vizH - barH - 1, 3, barH, ui.C.LUNA_LIGHT)
+            local barH = math.random(2, 10)
+            ui.fillRect(cx + 4 + i * 6, cy + vizH - barH - 1, 4, barH, ui.C.LUNA_LIGHT)
         end
     else
-        ui.drawText(cx + 6, cy + 6, "VEXGOS MEDIA PLAYER", ui.C.LUNA_LIGHT, 1)
-        ui.drawText(cx + 6, cy + 15, statusMsg, ui.C.GRAY, 1)
+        ui.drawText(cx + 4, cy + 4, "VEXGOS PLAYER", ui.C.LUNA_LIGHT, 1)
+        ui.drawText(cx + 4, cy + 13, statusMsg, ui.C.GRAY, 1)
     end
 
-    local ctrlY = cy + vizH + 4
-    ui.drawText(cx + 2, ctrlY + 3, "VOL", ui.C.BLACK, 1)
+    local ctrlY = cy + vizH + 2
+    ui.drawText(cx + 1, ctrlY + 2, "VOL", ui.C.BLACK, 1)
 
-    local barX, barW = cx + 18, 42
-    ui.fillRect(barX, ctrlY + 2, barW, 6, ui.C.GRAY)
+    local barX, barW = cx + 15, 32
+    ui.fillRect(barX, ctrlY + 2, barW, 5, ui.C.GRAY)
     local fillW = math.floor((volume / 3.0) * barW)
-    ui.fillRect(barX, ctrlY + 2, fillW, 6, ui.C.START_GREEN)
+    ui.fillRect(barX, ctrlY + 2, fillW, 5, ui.C.START_GREEN)
 
     table.insert(buttons, {
-        x1 = barX, y1 = ctrlY, x2 = barX + barW, y2 = ctrlY + 10,
+        x1 = barX, y1 = ctrlY, x2 = barX + barW, y2 = ctrlY + 9,
         onClick = function(px)
             local ratio = math.max(0.15, math.min(1.0, (px - barX) / barW))
             volume = math.floor(ratio * 6 + 0.5) * 0.5
         end
     })
 
-    ui.drawButton(buttons, barX + barW + 4, ctrlY, 26, 10, ui.C.LUNA_BLUE, ui.C.NAVY, "SYNC", ui.C.WHITE, onSync)
+    ui.drawButton(buttons, barX + barW + 3, ctrlY, 22, 9, ui.C.LUNA_BLUE, ui.C.NAVY, "SYNC", ui.C.WHITE, onSync)
 
     if currentTrack then
-        ui.drawButton(buttons, cx + cw - 28, ctrlY, 26, 10, ui.C.RED, ui.C.BLACK, "STOP", ui.C.WHITE, onStop)
+        ui.drawButton(buttons, barX + barW + 27, ctrlY, 22, 9, ui.C.RED, ui.C.BLACK, "STOP", ui.C.WHITE, onStop)
     end
 
-    local listY = ctrlY + 14
-    ui.fillRect(cx + 2, listY, cw - 4, ch - (listY - cy) - 2, ui.C.WHITE)
+    local listY = ctrlY + 11
+    ui.fillRect(cx + 1, listY, cw - 2, ch - (listY - cy) - 1, ui.C.WHITE)
 
-    local itemY = listY + 2
+    local itemY = listY + 1
     for i, tr in ipairs(tracks) do
-        if itemY + 10 > cy + ch - 2 then break end
+        if itemY + 9 > cy + ch - 1 then break end
         local active = (currentTrack and currentTrack.name == tr.name)
         local bg = active and ui.C.LUNA_BLUE or ui.C.WHITE
         local fg = active and ui.C.WHITE or ui.C.BLACK
-        local label = (active and "> " or (i .. ". ")) .. tr.name
+        local label = (active and ">" or (i .. ".")) .. tr.name
 
-        ui.drawButton(buttons, cx + 3, itemY, cw - 6, 10, bg, bg, label:sub(1, 30), fg, function()
+        ui.drawButton(buttons, cx + 2, itemY, cw - 4, 9, bg, bg, label:sub(1, 23), fg, function()
             onSelect(tr)
         end)
-        itemY = itemY + 11
+        itemY = itemY + 10
     end
 
     ui.drawTaskbar(buttons, function() exitApp = true end, nil)
