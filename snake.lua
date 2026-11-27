@@ -176,26 +176,54 @@ local function renderGame()
     ui.drawText(sideX + 3 * s, curY + 12 * s, "BEST:" .. bestScore, ui.C.LUNA_BLUE, s)
     curY = curY + 28 * s
 
+    -- Допоміжна функція для малювання піксельних трикутників-стрілок
+    local function drawArrow(bx, by, bw, bh, dirName)
+        local acx = bx + math.floor(bw / 2)
+        local acy = by + math.floor(bh / 2)
+        local sz = 3 * s
+        local half = math.floor(sz / 2)
+        for i = 0, sz - 1 do
+            if dirName == "up" then
+                ui.fillRect(acx - i, acy - half + i, i * 2 + 1, 1, ui.C.WHITE)
+            elseif dirName == "down" then
+                ui.fillRect(acx - i, acy + half - i, i * 2 + 1, 1, ui.C.WHITE)
+            elseif dirName == "left" then
+                ui.fillRect(acx - half + i, acy - i, 1, i * 2 + 1, ui.C.WHITE)
+            elseif dirName == "right" then
+                ui.fillRect(acx + half - i, acy - i, 1, i * 2 + 1, ui.C.WHITE)
+            end
+        end
+    end
+
     -- Хрестовина керування (D-Pad)
     local btnW = math.floor((sideW - 4) / 3)
     local btnH = 12 * s
 
-    ui.drawButton(buttons, sideX + btnW + 2, curY, btnW, btnH, ui.C.LUNA_BLUE, ui.C.NAVY, "^", ui.C.WHITE, function()
+    local upX, upY = sideX + btnW + 2, curY
+    ui.drawButton(buttons, upX, upY, btnW, btnH, ui.C.LUNA_BLUE, ui.C.NAVY, "", ui.C.WHITE, function()
         setDirection(0, -1)
     end, s)
+    drawArrow(upX, upY, btnW, btnH, "up")
     curY = curY + btnH + 2
 
-    ui.drawButton(buttons, sideX, curY, btnW, btnH, ui.C.LUNA_BLUE, ui.C.NAVY, "<", ui.C.WHITE, function()
+    local leftX, leftY = sideX, curY
+    ui.drawButton(buttons, leftX, leftY, btnW, btnH, ui.C.LUNA_BLUE, ui.C.NAVY, "", ui.C.WHITE, function()
         setDirection(-1, 0)
     end, s)
-    ui.drawButton(buttons, sideX + btnW * 2 + 4, curY, btnW, btnH, ui.C.LUNA_BLUE, ui.C.NAVY, ">", ui.C.WHITE, function()
+    drawArrow(leftX, leftY, btnW, btnH, "left")
+
+    local rightX, rightY = sideX + btnW * 2 + 4, curY
+    ui.drawButton(buttons, rightX, rightY, btnW, btnH, ui.C.LUNA_BLUE, ui.C.NAVY, "", ui.C.WHITE, function()
         setDirection(1, 0)
     end, s)
+    drawArrow(rightX, rightY, btnW, btnH, "right")
     curY = curY + btnH + 2
 
-    ui.drawButton(buttons, sideX + btnW + 2, curY, btnW, btnH, ui.C.LUNA_BLUE, ui.C.NAVY, "V", ui.C.WHITE, function()
+    local downX, downY = sideX + btnW + 2, curY
+    ui.drawButton(buttons, downX, downY, btnW, btnH, ui.C.LUNA_BLUE, ui.C.NAVY, "", ui.C.WHITE, function()
         setDirection(0, 1)
     end, s)
+    drawArrow(downX, downY, btnW, btnH, "down")
     curY = curY + btnH + 6 * s
 
     -- Кнопки NEW та PAUSE
