@@ -1,6 +1,5 @@
 local ui = {}
 
--- Палітра кольорів Windows XP (16 кольорів для Mode 1)
 ui.C = {
     WHITE = 0,
     BEIGE = 1,
@@ -21,25 +20,24 @@ ui.C = {
 }
 
 local paletteHex = {
-    [0] = 0xFFFFFF,  -- White
-    [1] = 0xECE9D8,  -- XP Window Beige
-    [2] = 0xACA899,  -- XP Border Gray
-    [3] = 0x245EDC,  -- XP Luna Blue
-    [4] = 0x4B8BF5,  -- XP Luna Highlight
-    [5] = 0x003399,  -- XP Dark Blue
-    [6] = 0x3C9A3C,  -- XP Start Green
-    [7] = 0x62B862,  -- XP Start Highlight
-    [8] = 0x5C9DED,  -- Bliss Sky
-    [9] = 0xD6E8FC,  -- Bliss Cloud
-    [10] = 0x68B028, -- Bliss Hill Light
-    [11] = 0x468218, -- Bliss Hill Dark
-    [12] = 0xE0433E, -- XP Close Red
-    [13] = 0xF39C12, -- XP Gold / Accent
-    [14] = 0x1A1D24, -- WMP Dark Screen
-    [15] = 0x000000  -- Black
+    [0] = 0xFFFFFF,
+    [1] = 0xECE9D8,
+    [2] = 0xACA899,
+    [3] = 0x245EDC,
+    [4] = 0x4B8BF5,
+    [5] = 0x003399,
+    [6] = 0x3C9A3C,
+    [7] = 0x62B862,
+    [8] = 0x5C9DED,
+    [9] = 0xD6E8FC,
+    [10] = 0x68B028,
+    [11] = 0x468218,
+    [12] = 0xE0433E,
+    [13] = 0xF39C12,
+    [14] = 0x1A1D24,
+    [15] = 0x000000
 }
 
--- Компактний піксельний шрифт 3x5 для графічного режиму
 local font3x5 = {
     A={2,5,7,5,5}, B={6,5,6,5,6}, C={3,4,4,4,3}, D={6,5,5,5,6}, E={7,4,6,4,7},
     F={7,4,6,4,4}, G={3,4,5,5,3}, H={5,5,7,5,5}, I={7,2,2,2,7}, J={1,1,1,5,2},
@@ -67,7 +65,6 @@ function ui.init()
     if not mon then error("Monitor not found!") end
     ui.mon = mon
 
-    -- Визначаємо співвідношення клітинки та пікселів
     mon.setGraphicsMode(0)
     mon.setTextScale(1)
     local cw, ch = mon.getSize()
@@ -105,6 +102,7 @@ function ui.fillRect(x, y, w, h, color)
 
     ui.mon.drawPixels(x, y, color, w, h)
 end
+
 function ui.drawText(x, y, text, color, scale)
     scale = scale or 1
     text = tostring(text):upper()
@@ -151,17 +149,14 @@ function ui.drawButton(buttons, x, y, w, h, bg, border, label, txtColor, onClick
     end
 end
 
--- Класичні шпалери Windows XP (Bliss)
 function ui.drawBlissWallpaper()
     local taskH = 14
     local deskH = ui.h - taskH
     ui.fillRect(0, 0, ui.w, deskH, ui.C.SKY)
 
-    -- Хмаринка
     ui.fillRect(24, 16, 26, 6, ui.C.CLOUD)
     ui.fillRect(28, 13, 16, 10, ui.C.CLOUD)
 
-    -- Зелений пагорб
     for x = 0, ui.w - 1 do
         local hillTop = math.floor(deskH * 0.62 + math.sin(x * 0.025) * 9)
         if hillTop < deskH then
@@ -171,7 +166,6 @@ function ui.drawBlissWallpaper()
     end
 end
 
--- Нижня панель задач Windows XP + кнопка Start
 function ui.drawTaskbar(buttons, onStartClick, onUpdateClick)
     local taskH = 14
     local y = ui.h - taskH
@@ -179,10 +173,8 @@ function ui.drawTaskbar(buttons, onStartClick, onUpdateClick)
     ui.fillRect(0, y, ui.w, 1, ui.C.LUNA_LIGHT)
     ui.fillRect(0, y + 1, ui.w, taskH - 1, ui.C.LUNA_BLUE)
 
-    -- Зелена кнопка Start
     ui.drawButton(buttons, 0, y, 34, taskH, ui.C.START_GREEN, ui.C.START_LIGHT, "START", ui.C.WHITE, onStartClick)
 
-    -- Системний трей праворуч (годинник + кнопка оновлення)
     local timeStr = textutils.formatTime(os.time(), true)
     local trayW = 54
     local trayX = ui.w - trayW
@@ -194,21 +186,17 @@ function ui.drawTaskbar(buttons, onStartClick, onUpdateClick)
     end
 end
 
--- Рамка вікна Windows XP із червоною кнопкою закриття [X]
 function ui.drawWindow(buttons, title, onClose)
     local taskH = 14
     local winH = ui.h - taskH
     local titleH = 13
 
-    -- Рамка та тіло вікна
     ui.fillRect(0, 0, ui.w, winH, ui.C.LUNA_BLUE)
     ui.fillRect(2, titleH, ui.w - 4, winH - titleH - 2, ui.C.BEIGE)
 
-    -- Синя шапка вікна
     ui.fillRect(2, 1, ui.w - 4, 1, ui.C.LUNA_LIGHT)
     ui.drawText(6, 4, title, ui.C.WHITE, 1)
 
-    -- Червона кнопка закриття X
     ui.drawButton(buttons, ui.w - 13, 2, 11, 10, ui.C.RED, ui.C.WHITE, "X", ui.C.WHITE, onClose)
 
     return 4, titleH + 2, ui.w - 8, winH - titleH - 4
