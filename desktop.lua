@@ -10,12 +10,11 @@ local apps = {
             local p = math.max(2, math.floor(size / 10))
             ui.fillRect(x + p, y + p, size - p * 2, size - p * 2, ui.C.LUNA_BLUE)
             ui.fillRect(x + p * 2, y + p * 2, size - p * 4, size - p * 4, ui.C.GOLD)
-            -- Трикутник Play по центру іконки
             local cx = x + math.floor(size * 0.4)
             local cy = y + math.floor(size * 0.32)
             local ph = math.max(4, math.floor(size * 0.36))
             for i = 0, math.floor(ph / 2) do
-                ui.fillRect(cx + i, cy + i, 2, ph - i * 2, ui.C.WHITE)
+                ui.fillRect(cx + i, cy + i, 2, ph - i * 2, ui.C.BLACK)
             end
         end
     }
@@ -23,6 +22,7 @@ local apps = {
 
 local buttons = {}
 local startMenuOpen = false
+local lastClick = nil
 
 local function downloadFile(url, path)
     local res = http.get(url .. "?t=" .. tostring(os.epoch("utc")))
@@ -43,7 +43,7 @@ local function showPopup(msg)
     local py = math.floor((ui.h - ph) / 2)
 
     ui.mon.setFrozen(true)
-    ui.fillRect(px, py, pw, ph, ui.C.NAVY)
+    ui.fillRect(px, py, pw, ph, ui.C.BLACK)
     ui.fillRect(px + 1, py + 1, pw - 2, ph - 2, ui.C.LUNA_BLUE)
     ui.drawText(px + math.floor((pw - ui.textWidth(msg, s)) / 2), py + math.floor((ph - 5 * s) / 2), msg, ui.C.WHITE, s)
     ui.mon.setFrozen(false)
@@ -76,7 +76,6 @@ local function renderDesktop()
 
     ui.drawBlissWallpaper()
 
-    -- Адаптивна сітка іконок на робочому столі
     local iconSize = 18 * s
     local cellW = math.max(iconSize + 10 * s, ui.textWidth("MEDIA", s) + 12 * s)
     local cellH = iconSize + 12 * s
@@ -111,7 +110,13 @@ local function renderDesktop()
         function() updateAll() end
     )
 
-    -- Адаптивне меню Start
+    -- Відображення координат останнього кліку на панелі задач
+    if lastClick then
+        local info = lastClick.x .. "," .. lastClick.y
+        local startW = ui.textWidth("START", s) + 12 * s
+        ui.drawText(startW + 4 * s, ui.h - ui.taskH + math.floor((ui.taskH - 5 * s) / 2), info, ui.C.GOLD, s)
+    end
+
     if startMenuOpen then
         local mw = math.max(84 * s, ui.pctX(0.32))
         local headerH = 10 * s + 4
@@ -128,7 +133,7 @@ local function renderDesktop()
         ui.fillRect(mx + 2, my + headerH, mw - 4, bodyH, ui.C.WHITE)
         local itemY = my + headerH + 3 * s
         for _, app in ipairs(apps) do
-            ui.drawButton(buttons, mx + 4, itemY, mw - 8, itemH, ui.C.WHITE, ui.C.BEIGE, app.name, ui.C.BLACK, function()
+            ui.drawButton(buttons, mx + 4, itemY, mw - 8, itemH, ui.C.BEIGE, ui.C.GRAY, app.name, ui.C.BLACK, function()
                 launchApp(app)
             end, s)
             itemY = itemY + itemH + 2
@@ -137,6 +142,11 @@ local function renderDesktop()
         local halfW = math.floor((mw - 8) / 2)
         ui.drawButton(buttons, mx + 3, my + mh - footerH + 2, halfW, footerH - 4, ui.C.GOLD, ui.C.GOLD, "UPDATE", ui.C.BLACK, updateAll, s)
         ui.drawButton(buttons, mx + 5 + halfW, my + mh - footerH + 2, mw - halfW - 8, footerH - 4, ui.C.RED, ui.C.RED, "REBOOT", ui.C.WHITE, os.reboot, s)
+    end
+
+    -- Червона точка у місці кліку для візуального підтвердження
+    if lastClick then
+        ui.fillRect(lastClick.x - 2, lastClick.y - 2, 4, 4, ui.C.RED)
     end
 
     ui.mon.setFrozen(false)
@@ -154,6 +164,7 @@ local ok, err = pcall(function()
             clockTimer = os.startTimer(5)
         elseif ev == "monitor_touch" then
             local px, py = ui.touchToPixel(p2, p3)
+            lastClick = { x = px, y = py }
             local hit = false
             for _, btn in ipairs(buttons) do
                 if px >= btn.x1 and px <= btn.x2 and py >= btn.y1 and py <= btn.y2 then
