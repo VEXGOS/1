@@ -3,10 +3,10 @@ local ui = {}
 -- Стандартні індекси палітри CC: Tweaked (1..16) у стилі Windows XP
 ui.C = {
     WHITE = 1,        -- Білий
-    BEIGE = 9,        -- Світло-сірий (тіло вікна XP)
+    BEIGE = 9,        -- Світло-сірий (вікна XP)
     GRAY = 8,         -- Темно-сірий (рамки)
     LUNA_BLUE = 12,   -- Синій (панель задач та шапка вікна)
-    LUNA_LIGHT = 10,  -- Блакитно-бірюзовий (акцент Luna / трей)
+    LUNA_LIGHT = 10,  -- Блакитно-бірюзовий (трей годинника)
     NAVY = 12,        -- Темно-синій
     START_GREEN = 6,  -- Лаймовий (кнопка START)
     START_LIGHT = 14, -- Зелений (рамка START)
@@ -14,7 +14,7 @@ ui.C = {
     CLOUD = 1,        -- Білий (хмаринка)
     HILL_LIGHT = 6,   -- Світло-зелений (верх пагорба)
     HILL_DARK = 14,   -- Зелений (пагорб Bliss)
-    RED = 15,         -- Червоний (кнопка закриття X / STOP)
+    RED = 15,         -- Червоний (кнопка X / STOP)
     GOLD = 5,         -- Жовтий (іконка плеєра / кнопка UPD)
     DARK = 16,        -- Чорний (екран еквалайзера)
     BLACK = 16        -- Чорний (текст і тіні)
@@ -87,9 +87,11 @@ function ui.gridCol(areaX, areaW, colStart, colSpan, gap)
     return x, w
 end
 
--- У CC: Graphics monitor_touch вже повертає піксельні координати
+-- Переведення символьних координат monitor_touch у пікселі (6x9 на клітинку)
 function ui.touchToPixel(tx, ty)
-    return math.floor(tx), math.floor(ty)
+    local px = math.floor((tx - 0.5) * ui.cellW)
+    local py = math.floor((ty - 0.5) * ui.cellH)
+    return px, py
 end
 
 function ui.fillRect(x, y, w, h, color)
