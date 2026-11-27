@@ -1,6 +1,5 @@
 local ui = {}
 
--- Індекси 16 кольорів палітри для CC: Graphics Mode 1 (1..16)
 ui.C = {
     WHITE = 1,
     BEIGE = 2,
@@ -67,16 +66,17 @@ function ui.init()
     ui.mon = mon
 
     mon.setGraphicsMode(0)
-    mon.setTextScale(0.5)
+    mon.setTextScale(1)
     local cw, ch = mon.getSize()
 
     mon.setGraphicsMode(1)
-    ui.w, ui.h = mon.getSize()
-    ui.cellW = ui.w / cw
-    ui.cellH = ui.h / ch
+    ui.cellW = 6
+    ui.cellH = 9
+    ui.w = cw * ui.cellW
+    ui.h = ch * ui.cellH
 
     for idx, hex in pairs(paletteHex) do
-        mon.setPaletteColor(2 ^ (idx - 1), hex)
+        mon.setPaletteColor(idx - 1, hex)
     end
 end
 
@@ -156,15 +156,15 @@ function ui.drawButton(buttons, x, y, w, h, bg, border, label, txtColor, onClick
 end
 
 function ui.drawBlissWallpaper()
-    local taskH = 14
+    local taskH = 12
     local deskH = ui.h - taskH
     ui.fillRect(0, 0, ui.w, deskH, ui.C.SKY)
 
-    ui.fillRect(24, 16, 26, 6, ui.C.CLOUD)
-    ui.fillRect(28, 13, 16, 10, ui.C.CLOUD)
+    ui.fillRect(58, 12, 26, 6, ui.C.CLOUD)
+    ui.fillRect(62, 9, 16, 10, ui.C.CLOUD)
 
     for x = 0, ui.w - 1 do
-        local hillTop = math.floor(deskH * 0.62 + math.sin(x * 0.025) * 9)
+        local hillTop = math.floor(deskH * 0.60 + math.sin(x * 0.045) * 8)
         if hillTop < deskH then
             ui.fillRect(x, hillTop, 1, 2, ui.C.HILL_LIGHT)
             ui.fillRect(x, hillTop + 2, 1, deskH - hillTop - 2, ui.C.HILL_DARK)
@@ -173,39 +173,39 @@ function ui.drawBlissWallpaper()
 end
 
 function ui.drawTaskbar(buttons, onStartClick, onUpdateClick)
-    local taskH = 14
+    local taskH = 12
     local y = ui.h - taskH
 
     ui.fillRect(0, y, ui.w, 1, ui.C.LUNA_LIGHT)
     ui.fillRect(0, y + 1, ui.w, taskH - 1, ui.C.LUNA_BLUE)
 
-    ui.drawButton(buttons, 0, y, 34, taskH, ui.C.START_GREEN, ui.C.START_LIGHT, "START", ui.C.WHITE, onStartClick)
+    ui.drawButton(buttons, 0, y, 28, taskH, ui.C.START_GREEN, ui.C.START_LIGHT, "START", ui.C.WHITE, onStartClick)
 
     local timeStr = textutils.formatTime(os.time(), true)
-    local trayW = 36
+    local trayW = 32
     local trayX = ui.w - trayW
     ui.fillRect(trayX, y + 1, trayW, taskH - 1, ui.C.LUNA_LIGHT)
-    ui.drawText(trayX + 4, y + 5, timeStr, ui.C.WHITE, 1)
+    ui.drawText(trayX + 3, y + 4, timeStr, ui.C.WHITE, 1)
 
     if onUpdateClick then
-        ui.drawButton(buttons, trayX - 22, y + 2, 20, taskH - 4, ui.C.GOLD, ui.C.WHITE, "UPD", ui.C.BLACK, onUpdateClick)
+        ui.drawButton(buttons, trayX - 20, y + 2, 18, taskH - 4, ui.C.GOLD, ui.C.WHITE, "UPD", ui.C.BLACK, onUpdateClick)
     end
 end
 
 function ui.drawWindow(buttons, title, onClose)
-    local taskH = 14
+    local taskH = 12
     local winH = ui.h - taskH
-    local titleH = 13
+    local titleH = 11
 
     ui.fillRect(0, 0, ui.w, winH, ui.C.LUNA_BLUE)
     ui.fillRect(2, titleH, ui.w - 4, winH - titleH - 2, ui.C.BEIGE)
 
     ui.fillRect(2, 1, ui.w - 4, 1, ui.C.LUNA_LIGHT)
-    ui.drawText(6, 4, title, ui.C.WHITE, 1)
+    ui.drawText(5, 3, title, ui.C.WHITE, 1)
 
-    ui.drawButton(buttons, ui.w - 13, 2, 11, 10, ui.C.RED, ui.C.WHITE, "X", ui.C.WHITE, onClose)
+    ui.drawButton(buttons, ui.w - 11, 2, 9, 8, ui.C.RED, ui.C.WHITE, "X", ui.C.WHITE, onClose)
 
-    return 4, titleH + 2, ui.w - 8, winH - titleH - 4
+    return 3, titleH + 2, ui.w - 6, winH - titleH - 4
 end
 
 return ui
