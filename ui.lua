@@ -1,41 +1,42 @@
 local ui = {}
 
+-- Бітові коди 16 кольорів ComputerCraft для drawPixels та setPaletteColor
 ui.C = {
     WHITE = 1,
     BEIGE = 2,
-    GRAY = 3,
-    LUNA_BLUE = 4,
-    LUNA_LIGHT = 5,
-    NAVY = 6,
-    START_GREEN = 7,
-    START_LIGHT = 8,
-    SKY = 9,
-    CLOUD = 10,
-    HILL_LIGHT = 11,
-    HILL_DARK = 12,
-    RED = 13,
-    GOLD = 14,
-    DARK = 15,
-    BLACK = 16
+    GRAY = 4,
+    LUNA_BLUE = 8,
+    LUNA_LIGHT = 16,
+    NAVY = 32,
+    START_GREEN = 64,
+    START_LIGHT = 128,
+    SKY = 256,
+    CLOUD = 512,
+    HILL_LIGHT = 1024,
+    HILL_DARK = 2048,
+    RED = 4096,
+    GOLD = 8192,
+    DARK = 16384,
+    BLACK = 32768
 }
 
 local paletteHex = {
-    [1]  = 0xFFFFFF, -- Білий
-    [2]  = 0xECE9D8, -- Бежевий (тіло вікон XP)
-    [3]  = 0xACA899, -- Сірий (рамки)
-    [4]  = 0x245EDC, -- Синій Luna (панель задач і шапка)
-    [5]  = 0x4B8BF5, -- Світло-синій (трей годинника)
-    [6]  = 0x003399, -- Темно-синій
-    [7]  = 0x3C9A3C, -- Зелений (кнопка START)
-    [8]  = 0x62B862, -- Світло-зелений (рамка START)
-    [9]  = 0x5C9DED, -- Небо Bliss
-    [10] = 0xD6E8FC, -- Хмаринка Bliss
-    [11] = 0x68B028, -- Світло-зелений пагорб
-    [12] = 0x468218, -- Темно-зелений пагорб
-    [13] = 0xE0433E, -- Червоний (кнопка X / STOP)
-    [14] = 0xF39C12, -- Золотий (іконка плеєра / UPD)
-    [15] = 0x1A1D24, -- Темний фон еквалайзера
-    [16] = 0x000000  -- Чорний
+    [ui.C.WHITE]       = 0xFFFFFF, -- Білий
+    [ui.C.BEIGE]       = 0xECE9D8, -- Бежевий (тіло вікон XP)
+    [ui.C.GRAY]        = 0xACA899, -- Сірий (рамки)
+    [ui.C.LUNA_BLUE]   = 0x245EDC, -- Синій Luna (панель задач і шапка)
+    [ui.C.LUNA_LIGHT]  = 0x4B8BF5, -- Світло-синій (трей годинника)
+    [ui.C.NAVY]        = 0x003399, -- Темно-синій
+    [ui.C.START_GREEN] = 0x3C9A3C, -- Зелений (кнопка START)
+    [ui.C.START_LIGHT] = 0x62B862, -- Світло-зелений (рамка START)
+    [ui.C.SKY]         = 0x5C9DED, -- Небо Bliss
+    [ui.C.CLOUD]       = 0xD6E8FC, -- Хмаринка Bliss
+    [ui.C.HILL_LIGHT]  = 0x68B028, -- Світло-зелений пагорб
+    [ui.C.HILL_DARK]   = 0x468218, -- Темно-зелений пагорб
+    [ui.C.RED]         = 0xE0433E, -- Червоний (кнопка X / STOP)
+    [ui.C.GOLD]        = 0xF39C12, -- Золотий (іконка плеєра / UPD)
+    [ui.C.DARK]        = 0x1A1D24, -- Темний фон еквалайзера
+    [ui.C.BLACK]       = 0x000000  -- Чорний
 }
 
 local font3x5 = {
@@ -81,8 +82,8 @@ function ui.init()
     ui.scale = math.max(1, math.min(3, math.floor(minSide / 150)))
     ui.taskH = 12 * ui.scale + 4
 
-    for idx, hex in pairs(paletteHex) do
-        mon.setPaletteColor(2 ^ (idx - 1), hex)
+    for colorBit, hex in pairs(paletteHex) do
+        mon.setPaletteColor(colorBit, hex)
     end
 end
 
