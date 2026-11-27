@@ -1,41 +1,41 @@
 local ui = {}
 
 ui.C = {
-    WHITE = 0,
-    BEIGE = 1,
-    GRAY = 2,
-    LUNA_BLUE = 3,
-    LUNA_LIGHT = 4,
-    NAVY = 5,
-    START_GREEN = 6,
-    START_LIGHT = 7,
-    SKY = 8,
-    CLOUD = 9,
-    HILL_LIGHT = 10,
-    HILL_DARK = 11,
-    RED = 12,
-    GOLD = 13,
-    DARK = 14,
-    BLACK = 15
+    WHITE = 1,          -- 2^0
+    BEIGE = 2,          -- 2^1
+    GRAY = 4,           -- 2^2
+    LUNA_BLUE = 8,      -- 2^3
+    LUNA_LIGHT = 16,    -- 2^4
+    NAVY = 32,          -- 2^5
+    START_GREEN = 64,   -- 2^6
+    START_LIGHT = 128,  -- 2^7
+    SKY = 256,          -- 2^8
+    CLOUD = 512,        -- 2^9
+    HILL_LIGHT = 1024,  -- 2^10
+    HILL_DARK = 2048,   -- 2^11
+    RED = 4096,         -- 2^12
+    GOLD = 8192,        -- 2^13
+    DARK = 16384,       -- 2^14
+    BLACK = 32768       -- 2^15
 }
 
 local paletteHex = {
-    [0] = 0xFFFFFF,
-    [1] = 0xECE9D8,
-    [2] = 0xACA899,
-    [3] = 0x245EDC,
-    [4] = 0x4B8BF5,
-    [5] = 0x003399,
-    [6] = 0x3C9A3C,
-    [7] = 0x62B862,
-    [8] = 0x5C9DED,
-    [9] = 0xD6E8FC,
-    [10] = 0x68B028,
-    [11] = 0x468218,
-    [12] = 0xE0433E,
-    [13] = 0xF39C12,
-    [14] = 0x1A1D24,
-    [15] = 0x000000
+    [ui.C.WHITE]       = 0xFFFFFF,
+    [ui.C.BEIGE]       = 0xECE9D8,
+    [ui.C.GRAY]        = 0xACA899,
+    [ui.C.LUNA_BLUE]   = 0x245EDC,
+    [ui.C.LUNA_LIGHT]  = 0x4B8BF5,
+    [ui.C.NAVY]        = 0x003399,
+    [ui.C.START_GREEN] = 0x3C9A3C,
+    [ui.C.START_LIGHT] = 0x62B862,
+    [ui.C.SKY]         = 0x5C9DED,
+    [ui.C.CLOUD]       = 0xD6E8FC,
+    [ui.C.HILL_LIGHT]  = 0x68B028,
+    [ui.C.HILL_DARK]   = 0x468218,
+    [ui.C.RED]         = 0xE0433E,
+    [ui.C.GOLD]        = 0xF39C12,
+    [ui.C.DARK]        = 0x1A1D24,
+    [ui.C.BLACK]       = 0x000000
 }
 
 local font3x5 = {
@@ -74,8 +74,8 @@ function ui.init()
     ui.cellW = ui.w / cw
     ui.cellH = ui.h / ch
 
-    for idx, hex in pairs(paletteHex) do
-        mon.setPaletteColor(2 ^ idx, hex)
+    for colorMask, hex in pairs(paletteHex) do
+        mon.setPaletteColor(colorMask, hex)
     end
 end
 
