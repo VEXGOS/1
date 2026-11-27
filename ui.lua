@@ -82,7 +82,7 @@ function ui.init()
     ui.taskH = 12 * ui.scale + 4
 
     for idx, hex in pairs(paletteHex) do
-        mon.setPaletteColor(idx - 1, hex)
+        mon.setPaletteColor(2 ^ (idx - 1), hex)
     end
 end
 
@@ -109,7 +109,6 @@ function ui.gridCol(areaX, areaW, colStart, colSpan, gap)
     return x, w
 end
 
--- У CC: Graphics подія monitor_touch вже передає піксельні координати
 function ui.touchToPixel(tx, ty)
     return math.floor(tx), math.floor(ty)
 end
