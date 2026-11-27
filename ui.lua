@@ -1,41 +1,23 @@
 local ui = {}
 
+-- Стандартні індекси палітри CC: Tweaked (1..16) у стилі Windows XP
 ui.C = {
-    WHITE = 1,
-    BEIGE = 2,
-    GRAY = 3,
-    LUNA_BLUE = 4,
-    LUNA_LIGHT = 5,
-    NAVY = 6,
-    START_GREEN = 7,
-    START_LIGHT = 8,
-    SKY = 9,
-    CLOUD = 10,
-    HILL_LIGHT = 11,
-    HILL_DARK = 12,
-    RED = 13,
-    GOLD = 14,
-    DARK = 15,
-    BLACK = 16
-}
-
-local paletteHex = {
-    [1]  = 0xFFFFFF, -- White
-    [2]  = 0xECE9D8, -- XP Window Beige
-    [3]  = 0xACA899, -- XP Border Gray
-    [4]  = 0x245EDC, -- XP Luna Blue
-    [5]  = 0x4B8BF5, -- XP Luna Highlight
-    [6]  = 0x003399, -- XP Dark Blue
-    [7]  = 0x3C9A3C, -- XP Start Green
-    [8]  = 0x62B862, -- XP Start Highlight
-    [9]  = 0x5C9DED, -- Bliss Sky
-    [10] = 0xD6E8FC, -- Bliss Cloud
-    [11] = 0x68B028, -- Bliss Hill Light
-    [12] = 0x468218, -- Bliss Hill Dark
-    [13] = 0xE0433E, -- XP Close Red
-    [14] = 0xF39C12, -- XP Gold
-    [15] = 0x1A1D24, -- WMP Dark Screen
-    [16] = 0x000000  -- Black
+    WHITE = 1,        -- Білий
+    BEIGE = 9,        -- Світло-сірий (тіло вікна XP)
+    GRAY = 8,         -- Темно-сірий (рамки)
+    LUNA_BLUE = 12,   -- Синій (панель задач та шапка вікна)
+    LUNA_LIGHT = 10,  -- Блакитно-бірюзовий (акцент Luna / трей)
+    NAVY = 12,        -- Темно-синій
+    START_GREEN = 6,  -- Лаймовий (кнопка START)
+    START_LIGHT = 14, -- Зелений (рамка START)
+    SKY = 4,          -- Світло-блакитний (небо Bliss)
+    CLOUD = 1,        -- Білий (хмаринка)
+    HILL_LIGHT = 6,   -- Світло-зелений (верх пагорба)
+    HILL_DARK = 14,   -- Зелений (пагорб Bliss)
+    RED = 15,         -- Червоний (кнопка закриття X / STOP)
+    GOLD = 5,         -- Жовтий (іконка плеєра / кнопка UPD)
+    DARK = 16,        -- Чорний (екран еквалайзера)
+    BLACK = 16        -- Чорний (текст і тіні)
 }
 
 local font3x5 = {
@@ -77,14 +59,9 @@ function ui.init()
     ui.w = cw * ui.cellW
     ui.h = ch * ui.cellH
 
-    -- Адаптивний коефіцієнт масштабу (для 2x2 -> 1, для 3x3 -> 2, для 4x4+ -> 3)
     local minSide = math.min(ui.w, ui.h)
     ui.scale = math.max(1, math.min(3, math.floor(minSide / 150)))
     ui.taskH = 12 * ui.scale + 4
-
-    for idx, hex in pairs(paletteHex) do
-        mon.setPaletteColor(2 ^ (idx - 1), hex)
-    end
 end
 
 function ui.shutdown()
@@ -94,7 +71,6 @@ function ui.shutdown()
     end
 end
 
--- Відносні координати у відсотках від розміру екрана (0.0 .. 1.0)
 function ui.pctX(p)
     return math.floor(ui.w * p)
 end
@@ -103,7 +79,6 @@ function ui.pctY(p)
     return math.floor(ui.h * p)
 end
 
--- 12-колонкова адаптивна сітка всередині будь-якої області
 function ui.gridCol(areaX, areaW, colStart, colSpan, gap)
     gap = gap or 2
     local colW = (areaW - gap * 11) / 12
@@ -112,10 +87,9 @@ function ui.gridCol(areaX, areaW, colStart, colSpan, gap)
     return x, w
 end
 
+-- У CC: Graphics monitor_touch вже повертає піксельні координати
 function ui.touchToPixel(tx, ty)
-    local px = math.floor((tx - 0.5) * ui.cellW)
-    local py = math.floor((ty - 0.5) * ui.cellH)
-    return px, py
+    return math.floor(tx), math.floor(ty)
 end
 
 function ui.fillRect(x, y, w, h, color)
@@ -181,12 +155,10 @@ function ui.drawButton(buttons, x, y, w, h, bg, border, label, txtColor, onClick
     end
 end
 
--- Адаптивні шпалери Windows XP (Bliss)
 function ui.drawBlissWallpaper()
     local deskH = ui.h - ui.taskH
     ui.fillRect(0, 0, ui.w, deskH, ui.C.SKY)
 
-    -- Адаптивна хмаринка
     local cloudX = ui.pctX(0.55)
     local cloudY = ui.pctY(0.12)
     local cloudW = math.max(24, ui.pctX(0.22))
@@ -194,7 +166,6 @@ function ui.drawBlissWallpaper()
     ui.fillRect(cloudX, cloudY + math.floor(cloudH * 0.3), cloudW, math.floor(cloudH * 0.7), ui.C.CLOUD)
     ui.fillRect(cloudX + math.floor(cloudW * 0.18), cloudY, math.floor(cloudW * 0.6), cloudH, ui.C.CLOUD)
 
-    -- Адаптивний зелений пагорб
     local waveAmp = math.max(8, ui.pctY(0.08))
     local waveFreq = (math.pi * 1.4) / math.max(1, ui.w)
     for x = 0, ui.w - 1 do
@@ -206,7 +177,6 @@ function ui.drawBlissWallpaper()
     end
 end
 
--- Адаптивна панель задач Windows XP
 function ui.drawTaskbar(buttons, onStartClick, onUpdateClick)
     local y = ui.h - ui.taskH
     local s = ui.scale
@@ -215,7 +185,7 @@ function ui.drawTaskbar(buttons, onStartClick, onUpdateClick)
     ui.fillRect(0, y + 1, ui.w, ui.taskH - 1, ui.C.LUNA_BLUE)
 
     local startW = ui.textWidth("START", s) + 12 * s
-    ui.drawButton(buttons, 0, y, startW, ui.taskH, ui.C.START_GREEN, ui.C.START_LIGHT, "START", ui.C.WHITE, onStartClick, s)
+    ui.drawButton(buttons, 0, y, startW, ui.taskH, ui.C.START_GREEN, ui.C.START_LIGHT, "START", ui.C.BLACK, onStartClick, s)
 
     local timeStr = textutils.formatTime(os.time(), true)
     local trayW = ui.textWidth(timeStr, s) + 10 * s
@@ -229,7 +199,6 @@ function ui.drawTaskbar(buttons, onStartClick, onUpdateClick)
     end
 end
 
--- Адаптивне вікно Windows XP
 function ui.drawWindow(buttons, title, onClose)
     local s = ui.scale
     local winH = ui.h - ui.taskH
