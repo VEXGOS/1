@@ -103,12 +103,8 @@ function ui.fillRect(x, y, w, h, color)
     h = math.min(ui.h - y, math.floor(h))
     if w <= 0 or h <= 0 then return end
 
-    local row = string.rep(string.char(color), w)
-    for dy = 0, h - 1 do
-        ui.mon.drawPixels(x, y + dy, row, w, 1)
-    end
+    ui.mon.drawPixels(x, y, color, w, h)
 end
-
 function ui.drawText(x, y, text, color, scale)
     scale = scale or 1
     text = tostring(text):upper()
